@@ -208,6 +208,78 @@ SHOOLINI_AUTH_URL = os.getenv(
     "https://my.shooliniuniversity.com/api/rec_auth.php"
 )
 SHOOLINI_AUTH_TOKEN = os.getenv("SHOOLINI_AUTH_TOKEN", "")
+SHARED_SSO_SECRET = os.getenv("SHARED_SSO_SECRET", "")
+
+
+class SageStudioSSORequest(BaseModel):
+    sso_token: str
+
+
+@router.post("/sso-from-sagestudio", response_model=Token)
+async def sso_from_sagestudio(
+    body: SageStudioSSORequest,
+    session: AsyncSession = Depends(get_session),
+):
+    """Accept a short-lived signed token from SageStudio and return an ArtifyAI JWT.
+
+    SageStudio's Flask backend signs the token with SHARED_SSO_SECRET, passing
+    the user's Shoolini identity. We validate the signature, find or create the
+    local user, and return a standard Bearer token — same shape as /login.
+    """
+    if not SHARED_SSO_SECRET:
+        raise HTTPException(503, "SageStudio SSO is not configured on this server")
+
+    try:
+        payload = jwt.decode(body.sso_token, SHARED_SSO_SECRET, algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(401, "SSO token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(401, "Invalid SSO token")
+
+    shoolini_username = payload.get("shoolini_username")  # Shoolini text username
+    shoolini_uid = payload.get("shoolini_uid")            # employee code
+
+    if not shoolini_username and not shoolini_uid:
+        raise HTTPException(400, "No user identity in SSO token")
+
+    # Lookup by employee code (shoolini_username column stores the uid)
+    result = await session.execute(
+        select(User).where(User.shoolini_username == (shoolini_uid or shoolini_username))
+    )
+    user = result.scalars().first()
+
+    if not user:
+        # Also try by username (employee code stored there on some accounts)
+        result = await session.execute(
+            select(User).where(User.username == (shoolini_uid or shoolini_username))
+        )
+        user = result.scalars().first()
+
+    if not user:
+        # First time this SageStudio user opens Studio — auto-create ArtifyAI account
+        uid = shoolini_uid or shoolini_username
+        safe_email = f"{re.sub(r'[^a-zA-Z0-9]', '.', uid)}@shoolini.artify"
+        existing = await session.execute(select(User).where(User.email == safe_email))
+        if existing.scalars().first():
+            safe_email = f"sagestudio.{uid}@artify.internal"
+
+        user = User(
+            username=uid,
+            email=safe_email,
+            hashed_password=get_password_hash(os.urandom(32).hex()),
+            full_name=shoolini_username or uid,
+            shoolini_username=shoolini_uid or shoolini_username,
+            is_active=True,
+        )
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+
+    if not user.is_active:
+        raise HTTPException(403, "This account has been deactivated")
+
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/shoolini-login", response_model=Token)

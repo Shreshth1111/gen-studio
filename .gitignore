@@ -1,0 +1,51 @@
+# Runtime data (generated at runtime, not source code)
+app_data/
+servers/fastapi/app_data/
+
+# Deployment configs (server-specific, may contain sensitive paths)
+deploy/
+
+# Documentation reports
+docs/
+
+# Environment variables (contain secrets/API keys)
+.env
+.env.*
+!.env.example
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+servers/fastapi/.venv/
+venv/
+env/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── Node.js / Next.js ─────────────────────────────────────────────────────────
+node_modules/
+servers/nextjs/.next/
+servers/nextjs/out/
+
+# TypeScript build info (auto-generated)
+tsconfig.tsbuildinfo
+
+# Next.js auto-generated types file
+servers/nextjs/next-env.d.ts
+
+# ── OS / Editor ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/

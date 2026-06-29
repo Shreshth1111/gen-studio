@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Artify Design Tokens
+   Colors are stored as space-separated RGB channels so Tailwind can apply
+   opacity via `rgb(var(--token) / <alpha-value>)`. Edit here, not inline.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Neutral ramp — warm near-black, not pure slate */
+  --bg:           9   9  14;   /* app background            #09090E */
+  --surface:     19  19  26;   /* cards, panels             #13131A */
+  --surface-2:   26  26  35;   /* raised / hover            #1A1A23 */
+  --line:        38  38  48;   /* hairline borders          #262630 */
+  --line-strong: 52  52  64;   /* emphasized borders        #343440 */
+
+  /* Text */
+  --text:       244 244 246;   /* primary                   #F4F4F6 */
+  --muted:      158 158 172;   /* secondary                 #9E9EAC */
+  --faint:      107 107 120;   /* tertiary / placeholder    #6B6B78 */
+
+  /* Brand — single confident violet */
+  --brand:      109  94 247;   /* primary action            #6D5EF7 */
+  --brand-hover: 91  77 232;   /* hover                     #5B4DE8 */
+  --brand-soft:  35  31  74;   /* tinted surface            #231F4A */
+  --brand-fg:   255 255 255;
+
+  /* Semantics */
+  --success:     52 211 153;   /* #34D399 */
+  --warning:    251 191  36;   /* #FBBF24 */
+  --danger:     248 113 113;   /* #F87171 */
+
+  /* Radii */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
+  background: rgb(var(--bg));
+  color: rgb(var(--text));
+  /* Subtle ambient glow so the near-black bg isn't flat */
+  background-image:
+    radial-gradient(60rem 40rem at 15% -10%, rgb(var(--brand) / 0.10), transparent 60%),
+    radial-gradient(50rem 40rem at 110% 0%, rgb(var(--brand) / 0.06), transparent 55%);
+  background-attachment: fixed;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(var(--line-strong)); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--faint)); }
+
+/* Focus ring — consistent, brand-tinted, accessible */
+:where(button, a, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid rgb(var(--brand) / 0.7);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* SSE / live cursor */
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+.cursor-blink { animation: blink 0.7s step-end infinite; }
+
+/* Shared thin scrollbar used by panels */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgb(var(--line-strong)); border-radius: 99px; }

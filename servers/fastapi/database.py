@@ -14,12 +14,13 @@ if DATABASE_URL.startswith("postgresql://"):
 elif DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
 
-# asyncpg does not support sslmode=require. We must convert it to ssl=true
+# asyncpg does not support sslmode=require as a keyword argument. We must convert it to ssl=require
 if "sslmode=require" in DATABASE_URL:
-    DATABASE_URL = DATABASE_URL.replace("sslmode=require", "ssl=true")
+    DATABASE_URL = DATABASE_URL.replace("sslmode=require", "ssl=require")
 elif "sslmode=" in DATABASE_URL:
     # fallback for any other sslmode options
-    DATABASE_URL = DATABASE_URL.replace("sslmode=prefer", "ssl=true")
+    DATABASE_URL = DATABASE_URL.replace("sslmode=prefer", "ssl=prefer")
+
 
 _is_mysql = DATABASE_URL.startswith("mysql")
 engine = create_async_engine(

@@ -8,22 +8,22 @@
    opacity via `rgb(var(--token) / <alpha-value>)`. Edit here, not inline.
    ───────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Neutral ramp — warm near-black, not pure slate */
-  --bg:           9   9  14;   /* app background            #09090E */
-  --surface:     19  19  26;   /* cards, panels             #13131A */
-  --surface-2:   26  26  35;   /* raised / hover            #1A1A23 */
-  --line:        38  38  48;   /* hairline borders          #262630 */
-  --line-strong: 52  52  64;   /* emphasized borders        #343440 */
+  /* Midnight Navy */
+  --bg:           2   6  23;   /* slate-950 #020617 */
+  --surface:     15  23  42;   /* slate-900 #0F172A */
+  --surface-2:   30  41  59;   /* slate-800 #1E293B */
+  --line:        51  65  85;   /* slate-700 #334155 */
+  --line-strong: 71  85 105;   /* slate-600 #475569 */
 
-  /* Text */
-  --text:       244 244 246;   /* primary                   #F4F4F6 */
-  --muted:      158 158 172;   /* secondary                 #9E9EAC */
-  --faint:      107 107 120;   /* tertiary / placeholder    #6B6B78 */
+  /* Text - slightly warmer off-white */
+  --text:       248 250 252;   /* slate-50  #F8FAFC */
+  --muted:      148 163 184;   /* slate-400 #94A3B8 */
+  --faint:      100 116 139;   /* slate-500 #64748B */
 
-  /* Brand — single confident violet */
-  --brand:      109  94 247;   /* primary action            #6D5EF7 */
-  --brand-hover: 91  77 232;   /* hover                     #5B4DE8 */
-  --brand-soft:  35  31  74;   /* tinted surface            #231F4A */
+  /* Brand - Gold / Amber */
+  --brand:      245 158  11;   /* amber-500 #F59E0B */
+  --brand-hover: 217 119   6;   /* amber-600 #D97706 */
+  --brand-soft:  69  26   3;   /* amber-950 #451A03 */
   --brand-fg:   255 255 255;
 
   /* Semantics */

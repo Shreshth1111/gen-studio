@@ -35,7 +35,7 @@ export default function StudioHub() {
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-14">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-display text-text">Artify Studio</h1>
+          <h1 className="text-display text-text">GenStudio</h1>
           <p className="text-muted mt-2 max-w-lg">Four AI tools, one workspace. Pick what you want to create.</p>
         </motion.div>
 

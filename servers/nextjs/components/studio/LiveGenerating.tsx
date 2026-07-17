@@ -10,7 +10,7 @@ import { cn } from "@/lib/ui";
  *  flight. Mirrors the hero's generating-slide feel: a floating, tilting card
  *  with a GENERATING badge, cycling status line, and a creeping progress bar. */
 export function LiveGenerating({
-  title, label, steps, variant = "doc", aspect, accent = "#6D5EF7",
+  title, label, steps, variant = "doc", aspect, accent = "#F59E0B",
 }: {
   title: string;
   label: string;

@@ -63,9 +63,9 @@ export default function QuizBuilderPage() {
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(topic)} — Quiz</title>
       <style>
         body{font-family:Arial,sans-serif;max-width:760px;margin:36px auto;padding:0 24px;color:#1a1a1a;line-height:1.5}
-        h1{font-size:26px;border-bottom:2px solid #6D5EF7;padding-bottom:6px}
-        .q{margin:18px 0;padding:14px 16px;border:1px solid #e3e3e3;border-radius:10px;page-break-inside:avoid}
-        .meta{font-size:11px;text-transform:capitalize;color:#6D5EF7;font-weight:bold;letter-spacing:.04em}
+        h1{font-size:26px;border-bottom:2px solid #F59E0B;padding-bottom:6px}
+        .q{margin:24px 0;page-break-inside:avoid}.q strong{display:block;margin-bottom:8px;font-size:16px}
+        .meta{font-size:11px;text-transform:capitalize;color:#F59E0B;font-weight:bold;letter-spacing:.04em}
         .qt{font-weight:bold;margin:6px 0}.opts{margin:6px 0 0 4px}.opts li{margin:3px 0}
         .opts li.correct{color:#0a7d36;font-weight:bold}
         .ans{margin-top:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 10px;font-size:14px}

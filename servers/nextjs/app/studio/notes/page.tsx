@@ -121,7 +121,7 @@ export default function NotesStudioPage() {
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(notes.title)}</title>
       <style>
         body{font-family:Georgia,serif;max-width:760px;margin:40px auto;padding:0 24px;color:#1a1a1a;line-height:1.6}
-        h1{font-size:30px;margin-bottom:4px;font-family:Arial}h2{font-size:20px;margin-top:28px;border-bottom:2px solid #6D5EF7;padding-bottom:4px;font-family:Arial;color:#3b2bb3}
+        h1{font-size:30px;margin-bottom:4px;font-family:Arial}h2{font-size:20px;margin-top:28px;border-bottom:2px solid #F59E0B;padding-bottom:4px;font-family:Arial;color:#B45309}
         .sub{color:#666;font-size:15px}table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px}
         th,td{border:1px solid #ddd;padding:8px 10px;text-align:left}th{background:#efeaff}
         code{background:#f3f3f3;padding:2px 5px;border-radius:3px;font-size:13px}li{margin:4px 0}

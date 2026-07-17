@@ -1,7 +1,7 @@
 """
-═══════════════════════════════════════════════════════════════════════════════
- export.py — DOWNLOAD AS .pptx  &  HAND-OFF TO SAGESTUDIO
-═══════════════════════════════════════════════════════════════════════════════
+═════════════════════════════════════════════════════════════════════════════
+ export.py — DOWNLOAD AS .pptx
+═════════════════════════════════════════════════════════════════════════════
 
 ROUTES
   POST /export/{id}/pptx
@@ -11,12 +11,9 @@ ROUTES
   GET  /export/{id}/pptx/download?token=...
      Streams the generated .pptx back to the browser (FileResponse). Token is a
      query param so a plain <a download> link works without custom headers.
-  POST /export/{id}/pptx/push-to-sagestudio
-     Exports the .pptx, builds a public URL, then redirects (or POSTs) it to
-     SageStudio so a deck can become a narrated video lecture in one click.
 
 NOTE: the actual JSON→.pptx drawing lives in services/pptx_generator.py.
-═══════════════════════════════════════════════════════════════════════════════
+═════════════════════════════════════════════════════════════════════════════
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
@@ -40,11 +37,6 @@ from services.pptx_generator import PPTXGenerator
 from services.llm_client import llm_client
 from lib.themes import THEMES
 
-SAGESTUDIO_URL = os.getenv("SAGESTUDIO_URL", "https://sagestudio.zsapiens.com")
-SAGESTUDIO_API_KEY = os.getenv("SAGESTUDIO_API_KEY", "")
-# Shared secret with SageStudio backend for signed SSO tokens.
-# Must be the same value in both apps' .env files.
-SHARED_SSO_SECRET = os.getenv("SHARED_SSO_SECRET", "")
 
 
 async def _generate_speaker_notes(slides: list, session: AsyncSession) -> None:
@@ -266,108 +258,6 @@ async def download_pptx(
         filename=f"{pres.title or 'presentation'}.pptx",
         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation"
     )
-
-
-@router.post("/{presentation_id}/pptx/push-to-sagestudio")
-async def push_to_sagestudio(
-    presentation_id: UUID,
-    current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-):
-    """Export the PPTX (if not already done) and push its download URL to
-    SageStudio's import endpoint. Returns the SageStudio redirect URL so the
-    frontend can navigate the user there."""
-    result = await session.execute(
-        select(Presentation).where(
-            Presentation.id == presentation_id,
-            Presentation.user_id == current_user.id,
-        )
-    )
-    pres = result.scalars().first()
-    if not pres:
-        raise HTTPException(404, "Presentation not found")
-
-    # 1. Fetch all slides
-    slides_result = await session.execute(
-        select(Slide)
-        .where(Slide.presentation_id == presentation_id)
-        .order_by(Slide.slide_number)
-    )
-    all_slides = slides_result.scalars().all()
-
-    # 2. Generate speaker notes for any empty slides (saves to DB)
-    await _generate_speaker_notes(all_slides, session)
-
-    # 3. Always rebuild the PPTX so it carries the freshly-generated notes.
-    #    Notes are embedded in the PPTX notes slides by pptx_generator.py,
-    #    so SageStudio's /api/ppt/inspect will read them back as voiceover scripts.
-    ppt_data = {
-        "id": str(pres.id),
-        "title": pres.title or pres.topic,
-        "theme": pres.theme,
-        "slides": [
-            {
-                "slide_number": s.slide_number,
-                "layout_type": s.layout_type,
-                "title": s.title,
-                "content": json.loads(s.content) if s.content else {},
-                "speaker_notes": s.speaker_notes,
-                "image_url": s.image_url,
-            }
-            for s in all_slides
-        ],
-    }
-    app_data = Path(os.getenv("APP_DATA_DIR", "./app_data"))
-    export_dir = app_data / "presentations" / str(presentation_id)
-    export_dir.mkdir(parents=True, exist_ok=True)
-    output_path = str(export_dir / "presentation.pptx")
-    theme = THEMES.get(pres.theme, THEMES["light"])
-    PPTXGenerator(theme).generate(ppt_data, output_path)
-    pres.pptx_path = output_path
-    session.add(pres)
-    await session.commit()
-
-    # 4. Build a short-lived download token so SageStudio can fetch the file.
-    short_token = create_access_token({"sub": str(current_user.id)})
-    app_base = os.getenv("APP_PUBLIC_URL", "https://artifyai.zsapiens.com")
-    pptx_url = (
-        f"{app_base}/api/v1/export/{presentation_id}/pptx/download"
-        f"?token={short_token}"
-    )
-    pptx_title = pres.title or pres.topic or "Presentation"
-
-    # Pass speaker notes via a separate short URL instead of inlining them in the
-    # redirect. Inlining all slide notes for large decks hits Apache's 414
-    # Request-URI Too Long limit. SageStudio fetches the notes from this URL
-    # (same token; ArtifyAI CORS is open) and overrides SageStudio's own
-    # inspect-generated scripts with ArtifyAI's LLM-generated ones.
-    notes_url = (
-        f"{app_base}/api/v1/export/{presentation_id}/speaker-notes"
-        f"?token={short_token}"
-    )
-
-    # Sign a short-lived SSO token so SageStudio can auto-login the user
-    # without requiring them to type their Shoolini password again.
-    # Only issued when the user authenticated via Shoolini SSO on ArtifyAI.
-    sso_token = ""
-    if SHARED_SSO_SECRET and current_user.shoolini_username and current_user.full_name:
-        sso_payload = {
-            # SageStudio User.username == Shoolini text username == ArtifyAI full_name
-            "shoolini_username": current_user.full_name,
-            # Employee code stored as shoolini_username on ArtifyAI side
-            "shoolini_uid": current_user.shoolini_username,
-            "exp": datetime.utcnow() + timedelta(seconds=120),
-        }
-        sso_token = jwt.encode(sso_payload, SHARED_SSO_SECRET, algorithm="HS256")
-
-    redirect = (
-        f"{SAGESTUDIO_URL}/dashboard"
-        f"?import_pptx_url={urllib.parse.quote(pptx_url, safe='')}"
-        f"&pptx_title={urllib.parse.quote(pptx_title, safe='')}"
-        f"&import_notes_url={urllib.parse.quote(notes_url, safe='')}"
-        + (f"&sso_token={urllib.parse.quote(sso_token, safe='')}" if sso_token else "")
-    )
-    return {"redirect_url": redirect, "pptx_url": pptx_url, "mode": "redirect"}
 
 
 @router.get("/{presentation_id}/json/download")

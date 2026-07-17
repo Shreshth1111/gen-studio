@@ -103,7 +103,7 @@ export function Hero({
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="flex items-center gap-2 mb-3">
-              <Badge tone="brand"><Sparkles className="w-3 h-3" /> Artify AI</Badge>
+              <Badge tone="brand"><Sparkles className="w-3 h-3" /> GenStudio</Badge>
               <span className="text-faint text-xs">
                 {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
               </span>
@@ -212,7 +212,7 @@ function Title3D({
               style={{
                 transform: "translateZ(35px)",
                 transformStyle: "preserve-3d",
-                backgroundImage: "linear-gradient(90deg, #8B7DFF, #6D5EF7, #B7AEFF, #6D5EF7, #8B7DFF)",
+                backgroundImage: "linear-gradient(90deg, #FBBF24, #F59E0B, #FDE68A, #F59E0B, #FBBF24)",
                 backgroundSize: "200% 100%",
                 WebkitBackgroundClip: "text",
                 backgroundClip: "text",

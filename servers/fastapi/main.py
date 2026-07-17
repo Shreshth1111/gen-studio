@@ -4,6 +4,10 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load the root .env file since Windows doesn't use the bash start script
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 from database import create_db_and_tables
 from api.v1.auth.endpoints import router as auth_router

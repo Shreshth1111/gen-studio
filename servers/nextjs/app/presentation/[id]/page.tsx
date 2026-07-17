@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Download, ChevronLeft, ChevronRight,
-  ZoomIn, ZoomOut, Undo, Redo, Save, Send, Mic, RefreshCw, Loader2, GripVertical,
+  ZoomIn, ZoomOut, Undo, Redo, Save, Mic, RefreshCw, Loader2, GripVertical,
   Plus, Trash2,
 } from "lucide-react";
 import {
@@ -21,7 +21,6 @@ import {
   exportPptx,
   updateSlide,
   pptxDownloadUrl,
-  pushToSageStudio,
   reorderSlidesApi,
   generateVoiceover,
   generateAllVoiceovers,
@@ -181,18 +180,6 @@ export default function PresentationEditorPage() {
     }
   };
 
-  const handleSendToSageStudio = async () => {
-    setPushing(true);
-    try {
-      const result = await pushToSageStudio(presentationId);
-      // Navigate user to SageStudio — either direct redirect or with import URL
-      window.open(result.redirect_url, "_blank", "noopener");
-    } catch (err: any) {
-      alert(err?.response?.data?.detail || "Could not send to SageStudio.");
-    } finally {
-      setPushing(false);
-    }
-  };
 
   const handleSlideUpdate = async (patch: any) => {
     if (!activeSlide) return;
@@ -294,18 +281,6 @@ export default function PresentationEditorPage() {
           {exporting ? <><span className="animate-spin text-xs">⟳</span> Exporting...</> : <><Download className="w-3.5 h-3.5" /> Download</>}
         </motion.button>
 
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleSendToSageStudio}
-          disabled={pushing || exporting}
-          title="Export PPTX and open it in SageStudio for video lecture generation"
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white text-sm px-4 py-1.5 rounded-lg font-semibold transition-all disabled:opacity-60"
-        >
-          {pushing
-            ? <><span className="animate-spin text-xs">⟳</span> Sending...</>
-            : <><Send className="w-3.5 h-3.5" /> Send to SageStudio</>}
-        </motion.button>
       </div>
 
       {/* ── Body ─────────────────────────────────────────────────── */}

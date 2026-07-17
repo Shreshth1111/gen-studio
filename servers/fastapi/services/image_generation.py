@@ -11,10 +11,18 @@ WHAT THIS FILE DOES
 
 BACKEND SELECTION (by .env flag, first match wins)
   1. DALL·E          USE_DALLE=true + OPENAI_API_KEY   → OpenAI Images API
-  2. Local SDXL      USE_LOCAL_SDXL=true               → SDXL-Lightning on GPU
-                                                          (diffusers, 4-step)
-  3. ComfyUI         USE_COMFYUI=true                  → ComfyUI workflow API
-  4. Placeholder     (always available)                → a prompt-hashed gradient
+  2. Remote SDXL     USE_REMOTE_SDXL=true               → shared sdxl-image-service
+                                                          (sdxl-image-service.service,
+                                                          one GPU lock shared across
+                                                          every caller on this box)
+  3. Local SDXL      USE_LOCAL_SDXL=true               → SDXL-Lightning loaded
+                                                          in-process (diffusers,
+                                                          4-step). Avoid alongside
+                                                          the remote service — both
+                                                          would load a full SDXL
+                                                          copy onto the same GPU.
+  4. ComfyUI         USE_COMFYUI=true                  → ComfyUI workflow API
+  5. Placeholder     (always available)                → a prompt-hashed gradient
                                                           PNG via Pillow, so the
                                                           app never hard-fails.
   Any backend error falls back to the placeholder.
@@ -24,6 +32,7 @@ USED BY: presentation_builder (slide images), slides.py (regenerate-image),
 ═══════════════════════════════════════════════════════════════════════════════
 """
 import asyncio
+import base64
 import os
 import hashlib
 from pathlib import Path
@@ -40,6 +49,9 @@ class ImageGenerationService:
         self.use_dalle = os.getenv("USE_DALLE", "false").lower() == "true"
         self.openai_api_key = os.getenv("OPENAI_API_KEY", "")
         self.use_local_sdxl = os.getenv("USE_LOCAL_SDXL", "false").lower() == "true"
+        self.use_remote_sdxl = os.getenv("USE_REMOTE_SDXL", "false").lower() == "true"
+        self.remote_sdxl_url = os.getenv("REMOTE_SDXL_URL", "http://localhost:8080")
+        self.remote_sdxl_api_key = os.getenv("REMOTE_SDXL_API_KEY", "")
         self._pipe = None
         self._lock = asyncio.Lock()
 
@@ -60,6 +72,8 @@ class ImageGenerationService:
         try:
             if self.use_dalle and self.openai_api_key:
                 return await self._generate_dalle(prompt, image_id, progress_callback)
+            elif self.use_remote_sdxl:
+                return await self._generate_remote_sdxl(prompt, image_id, width, height, progress_callback)
             elif self.use_local_sdxl:
                 return await self._generate_local_sdxl(prompt, image_id, width, height, progress_callback)
             elif self.use_comfyui:
@@ -96,6 +110,55 @@ class ImageGenerationService:
 
         if progress_callback:
             await progress_callback(100)
+        return str(img_path)
+
+    async def _generate_remote_sdxl(self, prompt, image_id, width, height, progress_callback=None) -> str:
+        """Generate via the shared sdxl-image-service (GPU-backed, queued across every caller on this box).
+
+        The service rejects with HTTP 429 once its own queue is full rather than
+        piling up requests indefinitely — back off and retry instead of treating
+        that as a hard failure.
+        """
+        img_path = self.output_dir / f"{image_id}.png"
+        headers = {"X-API-KEY": self.remote_sdxl_api_key} if self.remote_sdxl_api_key else {}
+        payload = {"prompt": prompt[:1000], "width": width, "height": height}
+
+        if progress_callback:
+            await progress_callback(20)
+
+        max_retries = 5
+        backoff = 3.0
+        data = None
+
+        async with aiohttp.ClientSession() as session:
+            for attempt in range(max_retries):
+                async with session.post(
+                    f"{self.remote_sdxl_url}/generate",
+                    json=payload,
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=130),
+                ) as resp:
+                    if resp.status == 429:
+                        if progress_callback:
+                            await progress_callback(min(20 + attempt * 5, 60))
+                        await asyncio.sleep(backoff)
+                        backoff = min(backoff * 1.5, 15.0)
+                        continue
+                    resp.raise_for_status()
+                    data = await resp.json()
+                    break
+
+        if data is None:
+            raise RuntimeError(f"Remote image service still busy after {max_retries} retries")
+
+        if progress_callback:
+            await progress_callback(85)
+
+        img_path.write_bytes(base64.b64decode(data["image_b64"]))
+
+        if progress_callback:
+            await progress_callback(100)
+
         return str(img_path)
 
     async def _generate_comfyui(self, prompt, image_id, width, height, progress_callback=None) -> str:

@@ -110,7 +110,7 @@ export default function DashboardPage() {
         particleCount: 110,
         spread: 75,
         origin: { y: 0.65 },
-        colors: ["#6D5EF7", "#8B7DFF", "#34D399", "#FFFFFF"],
+        colors: ["#F59E0B", "#FBBF24", "#34D399", "#FFFFFF"],
         disableForReducedMotion: true,
       });
     }

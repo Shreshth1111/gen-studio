@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/ui";
 
-/** Artify mark — two stacked slide planes with a spark cut out of the top
+/** GenStudio mark — two stacked slide planes with a spark cut out of the top
  *  corner. Reads as "presentation + AI". */
 export function ArtifyMark({
   size = 32,
@@ -21,8 +21,8 @@ export function ArtifyMark({
     >
       <defs>
         <linearGradient id="artify-g" x1="3" y1="5" x2="23" y2="20" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#8B7DFF" />
-          <stop offset="1" stopColor="#6D5EF7" />
+          <stop stopColor="#FBBF24" />
+          <stop offset="1" stopColor="#D97706" />
         </linearGradient>
       </defs>
       {/* back plane */}
@@ -54,8 +54,8 @@ export function Logo({
       <ArtifyMark size={size} />
       {showWord && (
         <span className="font-bold tracking-tight text-[18px] leading-none">
-          <span className="text-text">Artify</span>
-          <span className="bg-gradient-to-r from-[#8B7DFF] to-brand bg-clip-text text-transparent">AI</span>
+          <span className="text-text">Gen</span>
+          <span className="bg-gradient-to-r from-amber-300 to-brand bg-clip-text text-transparent">Studio</span>
         </span>
       )}
     </div>

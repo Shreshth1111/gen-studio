@@ -5,6 +5,9 @@ servers/fastapi/app_data/
 # Deployment configs (server-specific, may contain sensitive paths)
 deploy/
 
+# Shell startup scripts (machine-specific)
+*.sh
+
 # Documentation reports
 docs/
 

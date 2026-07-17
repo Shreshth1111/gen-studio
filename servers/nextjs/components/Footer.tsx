@@ -38,14 +38,12 @@ export function Footer() {
                 onClick={() => router.push("/new")} />
             </FooterCol>
 
-            <FooterCol title="Ecosystem">
-              <FooterLink href="https://sagestudio.zsapiens.com" label="SageStudio" external />
-              <FooterLink href="https://zsapiens.com" label="ZSapiens" external />
+            <FooterCol title="Links">
+              <FooterLink href="https://github.com" label="GitHub" external />
             </FooterCol>
 
             <FooterCol title="Support">
-              <FooterLink href="mailto:hello@zsapiens.com" label="Contact" />
-              <FooterLink href="https://zsapiens.com" label="About" external />
+              <FooterLink href="mailto:your@email.com" label="Contact" />
             </FooterCol>
           </div>
         </div>
@@ -54,7 +52,7 @@ export function Footer() {
         <div className="mt-14 pt-6 border-t border-line flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-faint text-xs text-center sm:text-left">
             © {year}{" "}
-            <span className="text-muted font-medium">ZSAPIENS SOFTECH PRIVATE LIMITED</span>.
+            <span className="text-muted font-medium">GenStudio</span>.
             All rights reserved.
           </p>
           <button

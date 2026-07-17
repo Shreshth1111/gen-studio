@@ -8,6 +8,12 @@ DATABASE_URL = os.getenv(
     "sqlite+aiosqlite:///./app_data/ppt_generator.db"
 )
 
+# Render / Neon provide postgresql:// or postgres://. We must convert them to postgresql+asyncpg://
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+
 _is_mysql = DATABASE_URL.startswith("mysql")
 engine = create_async_engine(
     DATABASE_URL,
